@@ -1,0 +1,38 @@
+taskr - A command line to-do list.
+----------------------------------
+
+MVP:
+
+1. taskr push "Go for a run"
+   taskr push "Do 5 LC Easy's"
+   taskr push "Write a short story"
+
+2. taskr list
+   
+   1. Go for a run
+   2. Do 5 LC Easy's
+   3. Write a short story
+
+3. taskr finished 1
+
+4. taskr list
+
+   1. Do 5 LC Easy's 
+   2. Write a short story
+
+5. taskr progress
+
+   1 completed
+
+6. taskr add-daily-goal "Exercise."
+
+   12:01 AM on any day following the above command:
+   
+   taskr list
+
+   1. Exercise
+
+7. tasker list daily-goals
+
+   1. Exercise
+
