@@ -4,6 +4,17 @@ import pickle #for persistent storage
 from datetime import date
 import os
 
+def getDailyTasks():
+    '''
+    Input: No input
+    Output: daily tasks object (a list)
+    '''
+    if os.path.isfile('./dailytasks.pk'):
+        with open('dailytasks.pk', 'rb') as f:
+            daily_tasks = pickle.load(f)
+    else:
+        daily_tasks = []
+    return daily_tasks
 
 def getTasks():
     '''
@@ -15,8 +26,11 @@ def getTasks():
             tasks = pickle.load(f)
     else:                                  #tasks is just a dict 
         tasks = {}
+        tasks[date] = []
+    for task in daily_tasks:
+        if task not in tasks[date]:
+            tasks[date].append(task)
     return tasks
-
 
 def getDate():                         #get the current date
     '''
@@ -53,6 +67,15 @@ def push(task):                        #add a task to today's list
     with open('tasks.pk', 'wb') as f:       #save
         pickle.dump(tasks, f)
 
+def addDailyTask(task):
+    '''
+    Input: task (a string)
+    Output: No output. Pushes task to the list of daily tasks.
+    '''
+    daily_tasks.append(task)
+    with open('dailytasks.pk', 'wb') as f:
+        pickle.dump(daily_tasks, f)
+
 def listTasks():
     '''
     Input: No input. 
@@ -61,8 +84,8 @@ def listTasks():
     if not tasks:                       #handles a tasks with no keys
         return
     i = 1 
-    if date not in tasks.keys():        #check for tasks
-       print('There are no tasks for today!')
+    if len(tasks[date]) == 0: 
+       print('There are no tasks to complete!')
 
     for specific_task in tasks[date]:
         print(str(i) + '.' + ' ' + specific_task + '\n')
@@ -85,9 +108,11 @@ def finished(index):
 if __name__ == "__main__":
     
     #Get the data we need into global scope
+    daily_tasks = getDailyTasks()
     tasks = getTasks()
     date = getDate()
     progress = getProgress()
+
 
     if len(sys.argv) == 1: #if the user simply puts taskr
         print('taskr is a command line task tracking tool')
