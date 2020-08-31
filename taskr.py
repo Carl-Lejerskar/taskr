@@ -21,15 +21,20 @@ def getTasks():
     Input: No input
     Output: tasks object (a dictionary)
     '''
+     
     if os.path.isfile('./tasks.pk'):       #if tasks.pk already exists 
         with open('tasks.pk', 'rb') as f:
             tasks = pickle.load(f)
-    else:                                  #tasks is just a dict 
+    else:                                  #otherwise initialize tasks as an empty dict
         tasks = {}
         tasks[date] = []
-    for task in daily_tasks:
-        if task not in tasks[date]:
+
+    if checkNewDay():                      #add daily tasks if it is a new day
+        for task in daily_tasks:
             tasks[date].append(task)
+        with open('tasks.pk', 'wb') as f:  #save the object
+            pickle.dump(tasks, f)
+ 
     return tasks
 
 def getDate():                         #get the current date
@@ -38,6 +43,23 @@ def getDate():                         #get the current date
     Output: Today's date (a datetime object)
     '''
     return date.today() 
+
+def checkNewDay():
+    '''
+    Input: No input
+    Output: True/False depending if date has changed
+    '''
+    if os.path.isfile('./stored_date.pk'):             #load the stored_date
+        with open('stored_date.pk', 'rb') as f:
+            stored_date = pickle.load(f)
+    else:
+        stored_date = getDate()                 
+    if stored_date != date:                     #if the date has changed, save the new date and return true
+        with open('stored_date.pk', 'wb') as f:
+            pickle.dump(date, f)
+        return True
+    else:
+        return False
 
 def getProgress():
     '''
@@ -72,9 +94,12 @@ def addDailyTask(task):
     Input: task (a string)
     Output: No output. Pushes task to the list of daily tasks.
     '''
-    daily_tasks.append(task)
+    daily_tasks.append(task)            #add task to the daily_tasks object
+    tasks[date].append(task)            #also add task to the tasks object
     with open('dailytasks.pk', 'wb') as f:
         pickle.dump(daily_tasks, f)
+    with open('tasks.pk', 'wb') as f:
+        pickle.dump(tasks, f)
 
 def listTasks():
     '''
@@ -89,6 +114,16 @@ def listTasks():
 
     for specific_task in tasks[date]:
         print(str(i) + '.' + ' ' + specific_task + '\n')
+        i += 1
+
+def listDailyTasks():
+    '''
+    Input: No input.
+    Output: No output. Prints the list of daily tasks.
+    '''
+    i = 1
+    for task in daily_tasks:
+        print(str(i) + '. ' + task)
         i += 1
 
 def finished(index):
@@ -129,4 +164,13 @@ if __name__ == "__main__":
     elif sys.argv[1] == 'progress':
         tasks_completed = progress[date]
         tasks_left = len(tasks[date]) 
-        print(str(tasks_completed) + ' task completed, ' + str(tasks_left) + ' left.')
+        if tasks_left > 0 :
+            print(str(tasks_completed) + ' task completed, ' + str(tasks_left) + ' left.')
+        else:
+            print('Good job, you finished all your tasks!')
+    
+    elif sys.argv[1] == 'add-daily-task':
+        addDailyTask(sys.argv[2])
+    
+    elif sys.argv[1] == 'list-daily-tasks':
+        listDailyTasks()

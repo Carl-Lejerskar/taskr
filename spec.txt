@@ -24,7 +24,9 @@ MVP:
 
    1 completed
 
-6. taskr add-daily-goal "Exercise."
+6. taskr remove 1
+
+6. taskr add-daily-task "Exercise."
 
    12:01 AM on any day following the above command:
    
@@ -32,7 +34,7 @@ MVP:
 
    1. Exercise
 
-7. tasker list daily-goals
+7. tasker list-daily-tasks
 
    1. Exercise
 
