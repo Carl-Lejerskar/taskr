@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys  #to parse args passed 
 import pickle #for persistent storage 
 from datetime import date
@@ -27,14 +27,13 @@ def getTasks():
             tasks = pickle.load(f)
     else:                                  #otherwise initialize tasks as an empty dict
         tasks = {}
-        tasks[date] = []
-
+        tasks[current_date] = []
     if checkNewDay():                      #add daily tasks if it is a new day
+        tasks[current_date] = []
         for task in daily_tasks:
-            tasks[date].append(task)
+            tasks[current_date].append(task)
         with open('tasks.pk', 'wb') as f:  #save the object
             pickle.dump(tasks, f)
- 
     return tasks
 
 def getDate():                         #get the current date
@@ -53,10 +52,10 @@ def checkNewDay():
         with open('stored_date.pk', 'rb') as f:
             stored_date = pickle.load(f)
     else:
-        stored_date = getDate()                 
-    if stored_date != date:                     #if the date has changed, save the new date and return true
+        stored_date = current_date                 
+    if stored_date != current_date:                     #if the date has changed, save the new date and return true
         with open('stored_date.pk', 'wb') as f:
-            pickle.dump(date, f)
+            pickle.dump(current_date, f)
         return True
     else:
         return False
@@ -71,10 +70,8 @@ def getProgress():
             progress = pickle.load(f)
     else:
         progress = {}
-
     if date not in progress.keys():
-        progress[date] = 0
-
+        progress[current_date] = 0
     return progress
             
 def push(task):                        #add a task to today's list
@@ -83,9 +80,9 @@ def push(task):                        #add a task to today's list
     Output: No output. Pushes task to list of tasks for today's date.
     '''
     if date in tasks.keys():           #add task to list of tasks if a list of tasks already exists
-        tasks[date].append(task)
+        tasks[current_date].append(task)
     else:
-        tasks[date] = [task]            #add task as a list if no tasks exists for that date 
+        tasks[current_date] = [task]            #add task as a list if no tasks exists for that date 
     with open('tasks.pk', 'wb') as f:       #save
         pickle.dump(tasks, f)
 
@@ -95,7 +92,7 @@ def addDailyTask(task):
     Output: No output. Pushes task to the list of daily tasks.
     '''
     daily_tasks.append(task)            #add task to the daily_tasks object
-    tasks[date].append(task)            #also add task to the tasks object
+    tasks[current_date].append(task)            #also add task to the tasks object
     with open('dailytasks.pk', 'wb') as f:
         pickle.dump(daily_tasks, f)
     with open('tasks.pk', 'wb') as f:
@@ -109,10 +106,10 @@ def listTasks():
     if not tasks:                       #handles a tasks with no keys
         return
     i = 1 
-    if len(tasks[date]) == 0: 
+    if len(tasks[current_date]) == 0: 
        print('There are no tasks to complete!')
 
-    for specific_task in tasks[date]:
+    for specific_task in tasks[current_date]:
         print(str(i) + '.' + ' ' + specific_task + '\n')
         i += 1
 
@@ -126,13 +123,22 @@ def listDailyTasks():
         print(str(i) + '. ' + task)
         i += 1
 
+def showProgress(): 
+    tasks_completed = progress[current_date]
+    tasks_left = len(tasks[current_date]) 
+    if tasks_left > 0 :
+        print(str(tasks_completed) + ' task completed, ' + str(tasks_left) + ' left.')
+    else:
+        print('Good job, you finished all {} of your tasks!'.format(tasks_completed))
+
+
 def finished(index):
     '''
     Input: The index of task completed (an int)
     Output: No output. Removes task from today's lists of tasks.
     '''
-    del tasks[date][index - 1]          #subtract from one to get 0-based index of task
-    progress[date] += 1                 #add one to the progress for today
+    del tasks[current_date][index - 1]          #subtract from one to get 0-based index of task
+    progress[current_date] += 1                 #add one to the progress for today
 
     with open('tasks.pk', 'wb') as f:
         pickle.dump(tasks, f)
@@ -143,9 +149,9 @@ def finished(index):
 if __name__ == "__main__":
     
     #Get the data we need into global scope
+    current_date = getDate()
     daily_tasks = getDailyTasks()
     tasks = getTasks()
-    date = getDate()
     progress = getProgress()
 
 
@@ -162,13 +168,8 @@ if __name__ == "__main__":
         finished(int(sys.argv[2]))
     
     elif sys.argv[1] == 'progress':
-        tasks_completed = progress[date]
-        tasks_left = len(tasks[date]) 
-        if tasks_left > 0 :
-            print(str(tasks_completed) + ' task completed, ' + str(tasks_left) + ' left.')
-        else:
-            print('Good job, you finished all your tasks!')
-    
+        showProgress() 
+
     elif sys.argv[1] == 'add-daily-task':
         addDailyTask(sys.argv[2])
     
