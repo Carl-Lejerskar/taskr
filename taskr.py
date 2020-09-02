@@ -4,13 +4,15 @@ import pickle #for persistent storage
 from datetime import date
 import os
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
 def getDailyTasks():
     '''
     Input: No input
     Output: daily tasks object (a list)
     '''
-    if os.path.isfile('./dailytasks.pk'):
-        with open('dailytasks.pk', 'rb') as f:
+    if os.path.isfile('/data/dailytasks.pk'):
+        with open(dir_path + '/data/dailytasks.pk', 'rb') as f:
             daily_tasks = pickle.load(f)
     else:
         daily_tasks = []
@@ -22,18 +24,21 @@ def getTasks():
     Output: tasks object (a dictionary)
     '''
      
-    if os.path.isfile('./tasks.pk'):       #if tasks.pk already exists 
-        with open('tasks.pk', 'rb') as f:
+    if os.path.isfile(dir_path + '/data/tasks.pk'):       #if tasks.pk already exists 
+        with open(dir_path + '/data/tasks.pk', 'rb') as f:
             tasks = pickle.load(f)
+            if current_date not in tasks.keys():
+                tasks[current_date] = []
     else:                                  #otherwise initialize tasks as an empty dict
         tasks = {}
         tasks[current_date] = []
+
     if checkNewDay():                      #add daily tasks if it is a new day
-        tasks[current_date] = []
         for task in daily_tasks:
             tasks[current_date].append(task)
-        with open('tasks.pk', 'wb') as f:  #save the object
+        with open(dir_path + '/data/tasks.pk', 'wb') as f:  #save the object
             pickle.dump(tasks, f)
+ 
     return tasks
 
 def getDate():                         #get the current date
@@ -48,13 +53,13 @@ def checkNewDay():
     Input: No input
     Output: True/False depending if date has changed
     '''
-    if os.path.isfile('./stored_date.pk'):             #load the stored_date
-        with open('stored_date.pk', 'rb') as f:
+    if os.path.isfile(dir_path + '/data/stored_date.pk'):             #load the stored_date
+        with open(dir_path + '/data/stored_date.pk', 'rb') as f:
             stored_date = pickle.load(f)
     else:
-        stored_date = current_date                 
+        stored_date = current_date
     if stored_date != current_date:                     #if the date has changed, save the new date and return true
-        with open('stored_date.pk', 'wb') as f:
+        with open(dir_path + '/data/stored_date.pk', 'wb') as f:
             pickle.dump(current_date, f)
         return True
     else:
@@ -65,25 +70,22 @@ def getProgress():
     Input: No input. 
     Output: progress (a dictionary)
     '''
-    if os.path.isfile('./progress.pk'):
-        with open('progress.pk', 'rb') as f:
+    if os.path.isfile(dir_path + '/data/progress.pk'):
+        with open(dir_path + '/data/progress.pk', 'rb') as f:
             progress = pickle.load(f)
     else:
         progress = {}
-    if date not in progress.keys():
+    if current_date not in progress.keys():
         progress[current_date] = 0
     return progress
             
-def push(task):                        #add a task to today's list
+def add(task):                        #add a task to today's list
     '''
     Input: task (a string)
     Output: No output. Pushes task to list of tasks for today's date.
     '''
-    if date in tasks.keys():           #add task to list of tasks if a list of tasks already exists
-        tasks[current_date].append(task)
-    else:
-        tasks[current_date] = [task]            #add task as a list if no tasks exists for that date 
-    with open('tasks.pk', 'wb') as f:       #save
+    tasks[current_date].append(task)
+    with open(dir_path + '/data/tasks.pk', 'wb') as f:       #save
         pickle.dump(tasks, f)
 
 def addDailyTask(task):
@@ -93,9 +95,9 @@ def addDailyTask(task):
     '''
     daily_tasks.append(task)            #add task to the daily_tasks object
     tasks[current_date].append(task)            #also add task to the tasks object
-    with open('dailytasks.pk', 'wb') as f:
+    with open(dir_path + '/data/dailytasks.pk', 'wb') as f:
         pickle.dump(daily_tasks, f)
-    with open('tasks.pk', 'wb') as f:
+    with open(dir_path + '/data/tasks.pk', 'wb') as f:
         pickle.dump(tasks, f)
 
 def listTasks():
@@ -140,10 +142,10 @@ def finished(index):
     del tasks[current_date][index - 1]          #subtract from one to get 0-based index of task
     progress[current_date] += 1                 #add one to the progress for today
 
-    with open('tasks.pk', 'wb') as f:
+    with open(dir_path + '/data/tasks.pk', 'wb') as f:
         pickle.dump(tasks, f)
 
-    with open('progress.pk', 'wb') as f:
+    with open(dir_path + '/data/progress.pk', 'wb') as f:
         pickle.dump(progress, f)
    
 if __name__ == "__main__":
@@ -158,8 +160,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 1: #if the user simply puts taskr
         print('taskr is a command line task tracking tool')
 
-    elif sys.argv[1] == 'push':  #if the user is pushing a task
-        push(sys.argv[2])
+    elif sys.argv[1] == 'add':  #if the user is adding a task
+        add(sys.argv[2])
 
     elif sys.argv[1] == 'list':  #list the tasks
         listTasks()
