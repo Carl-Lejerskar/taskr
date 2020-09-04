@@ -11,7 +11,7 @@ def getDailyTasks():
     Input: No input
     Output: daily tasks object (a list)
     '''
-    if os.path.isfile('/data/dailytasks.pk'):
+    if os.path.isfile(dir_path + '/data/dailytasks.pk'):
         with open(dir_path + '/data/dailytasks.pk', 'rb') as f:
             daily_tasks = pickle.load(f)
     else:
