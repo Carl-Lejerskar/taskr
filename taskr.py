@@ -82,16 +82,29 @@ def getProgress():
 def add(task):                        #add a task to today's list
     '''
     Input: task (a string)
-    Output: No output. Pushes task to list of tasks for today's date.
+    Output: No output. Pushes task to list of tasks for today's date. Prints new set of tasks.
     '''
     tasks[current_date].append(task)
     with open(dir_path + '/data/tasks.pk', 'wb') as f:       #save
         pickle.dump(tasks, f)
+    listTasks()
+
+def remove(index):
+    '''
+    Input: task (a string)
+    Output: No output. Removes tasks from list of tasks. Prints new set of tasks
+    '''
+    del tasks[current_date][index - 1]          #subtract from one to get 0-based index of task
+
+    with open(dir_path + '/data/tasks.pk', 'wb') as f:
+        pickle.dump(tasks, f)
+
+    listTasks()
 
 def addDailyTask(task):
     '''
     Input: task (a string)
-    Output: No output. Pushes task to the list of daily tasks.
+    Output: No output. Pushes task to the list of daily tasks. Prints new set of tasks.
     '''
     daily_tasks.append(task)            #add task to the daily_tasks object
     tasks[current_date].append(task)            #also add task to the tasks object
@@ -139,11 +152,9 @@ def finished(index):
     Input: The index of task completed (an int)
     Output: No output. Removes task from today's lists of tasks.
     '''
-    del tasks[current_date][index - 1]          #subtract from one to get 0-based index of task
-    progress[current_date] += 1                 #add one to the progress for today
+    remove(index)
 
-    with open(dir_path + '/data/tasks.pk', 'wb') as f:
-        pickle.dump(tasks, f)
+    progress[current_date] += 1                 #add one to the progress for today
 
     with open(dir_path + '/data/progress.pk', 'wb') as f:
         pickle.dump(progress, f)
@@ -165,15 +176,18 @@ if __name__ == "__main__":
 
     elif sys.argv[1] == 'list':  #list the tasks
         listTasks()
+    
+    elif sys.argv[1] == 'remove': #remove the task
+        remove(int(sys.argv[2]))
    
-    elif sys.argv[1] == 'finished':
+    elif sys.argv[1] == 'finished': #remove the task and add to progress
         finished(int(sys.argv[2]))
     
-    elif sys.argv[1] == 'progress':
+    elif sys.argv[1] == 'progress': #print progress
         showProgress() 
 
-    elif sys.argv[1] == 'add-daily-task':
+    elif sys.argv[1] == 'add-daily-task': #add new task to daily tasks
         addDailyTask(sys.argv[2])
     
-    elif sys.argv[1] == 'list-daily-tasks':
+    elif sys.argv[1] == 'list-daily-tasks': #list daily tasks
         listDailyTasks()
